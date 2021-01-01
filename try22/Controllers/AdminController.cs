@@ -14,14 +14,16 @@ namespace try22.Controllers
         private readonly IPasswordHasher<AppUser> passwordHasher;
         private readonly IUserValidator<AppUser> userValidator;
         private readonly IPasswordValidator<AppUser> passwordValidator;
+        private readonly RoleManager<IdentityRole> roleManager;
 
         public AdminController(UserManager<AppUser> userManager,IPasswordHasher<AppUser> passwordHasher
-            ,IUserValidator<AppUser> userValidator,IPasswordValidator<AppUser>passwordValidator)
+            ,IUserValidator<AppUser> userValidator,IPasswordValidator<AppUser>passwordValidator,RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;
             this.passwordHasher = passwordHasher;
             this.userValidator = userValidator;
             this.passwordValidator = passwordValidator;
+            this.roleManager = roleManager;
         }
         public IActionResult Index()
         {
@@ -56,6 +58,7 @@ namespace try22.Controllers
                 IdentityResult res = await userManager.CreateAsync(user, model.Pass);
                 if (res.Succeeded)
                 {
+                    await AddUserRole("guest", model.UserName);
                     return RedirectToAction("Index");
                 }
                 else
@@ -67,6 +70,12 @@ namespace try22.Controllers
                 }
             }
             return View();
+        }
+        public async Task AddUserRole(string role,string  username)
+        {
+            var Role = await roleManager.FindByNameAsync(role);
+            var User = await userManager.FindByNameAsync(username);
+            await userManager.AddToRoleAsync(User, Role.Name);
         }
         public async Task<IActionResult> Delete(string id)
         {

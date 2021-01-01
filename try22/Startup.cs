@@ -14,6 +14,8 @@ using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 using try22.Models;
 using Microsoft.AspNetCore.Identity;
 using try22.Inferastructure;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace try22
 {
@@ -31,18 +33,35 @@ namespace try22
         {
             services.AddDbContext<DemoContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddTransient<IUserValidator<AppUser>, CustomValidator>();
-            services.AddIdentity<AppUser, IdentityRole>(o=> {
+            services.AddIdentity<AppUser, IdentityRole>(o =>
+            {
                 o.Password.RequireDigit = true;
                 o.Password.RequiredLength = 3;
                 o.Password.RequiredUniqueChars = 2;
                 o.Password.RequireLowercase = false;
                 o.Password.RequireNonAlphanumeric = false;
-                
+
             })
                 .AddEntityFrameworkStores<DemoContext>()
                 .AddErrorDescriber<CustomIdentityError>()
                 .AddDefaultTokenProviders();
+            //services.ConfigureApplicationCookie(c => { c.LoginPath = ""; });
+            services.AddSingleton<IClaimsTransformation, ClaimsProvider>();
+            services.AddAuthorization(p =>
+            {
+                p.AddPolicy("for female", options =>
+{
+    options.RequireClaim(ClaimTypes.Gender, "female");
 
+
+});
+                p.AddPolicy("just female", options =>
+                {
+                    options.AddRequirements(new OnleFemaleRequerment() { Name="nmesri"});
+
+
+                });
+            });
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -67,7 +86,7 @@ namespace try22
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();

@@ -1,0 +1,24 @@
+﻿@model IEnumerable<System.Security.Claims.Claim>
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+@*<table>
+    @foreach (var item in Model)
+    {
+    <tr>
+        <th>@item.Subject</th>
+        <th>@item.Issuer</th>
+        <th>@item.Type</th>
+        <th>@item.Value</th>
+    </tr>
+    }
+
+</table>*@
+<table>
+    <tr>
+        <Claim model="@Model"></Claim>
+    </tr>
+</table>
+
